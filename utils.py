@@ -1,39 +1,107 @@
-from sentence_transformers import SentenceTransformer
-import pinecone
-import openai
+import os
 import streamlit as st
+from dotenv import load_dotenv
 
-openai.api_key = "" ## find at platform.openai.com
-model = SentenceTransformer('all-MiniLM-L6-v2')
+from langchain_openai import ChatOpenAI,OpenAIEmbeddings
+from pinecone import Pinecone
 
-pinecone.init(api_key='', # find at app.pinecone.io
-              environment='' # next to api key in console
-             )
-index = pinecone.Index('' # index name from pinecone)
+# -------------------------------
+# Load environment variables
+# -------------------------------
+load_dotenv()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "langchain-chatbot")
 
-def find_match(input):
-    input_em = model.encode(input).tolist()
-    result = index.query(input_em, top_k=2, includeMetadata=True)
-    return result['matches'][0]['metadata']['text']+"\n"+result['matches'][1]['metadata']['text']
+# -------------------------------
+# Initialize Pinecone SDK
+# -------------------------------
+pinecone_client = Pinecone(api_key=PINECONE_API_KEY)
+index = pinecone_client.Index(PINECONE_INDEX_NAME)
 
-def query_refiner(conversation, query):
-
-    response = openai.Completion.create(
-    model="text-davinci-003",
-    prompt=f"Given the following user query and conversation log, formulate a question that would be the most relevant to provide the user with an answer from a knowledge base.\n\nCONVERSATION LOG: \n{conversation}\n\nQuery: {query}\n\nRefined Query:",
+# -------------------------------
+# Initialize embeddings
+# -------------------------------
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small",
+    # With the `text-embedding-3` class
+    # of models, you can specify the size
+    # of the embeddings you want returned.
+    # dimensions=1024
+)
+# -------------------------------
+# Initialize Chat LLM for query refinement
+# -------------------------------
+llm = ChatOpenAI(
+    model="gpt-3.5-turbo",
     temperature=0.7,
-    max_tokens=256,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0
-    )
-    return response['choices'][0]['text']
+    openai_api_key=OPENAI_API_KEY
+)
 
-def get_conversation_string():
+# -------------------------------
+# Vector search / retrieval
+# -------------------------------
+def find_match(query: str, top_k: int = 2) -> str:
+    """
+    Perform a semantic search over Pinecone index and return top_k results as concatenated text.
+    """
+    # Embed the query
+    query_embedding = embeddings.embed_query(query)
+
+    # Search Pinecone
+    result = index.query(
+        vector=query_embedding,
+        top_k=top_k,
+        include_metadata=True
+    )
+
+    # Concatenate retrieved texts
+    matches = []
+    for match in result.get("matches", []):
+        text = match.get("metadata", {}).get("text", "")
+        if text:
+            matches.append(text)
+    return "\n".join(matches)
+
+# -------------------------------
+# Query refinement
+# -------------------------------
+def query_refiner(conversation: str, query: str) -> str:
+    """
+    Refine the user query using the LLM to make it more suitable for semantic search.
+    """
+    prompt = f"""
+Given the following conversation log and user query,
+rewrite the query to be optimal for semantic search in a knowledge base.
+
+Conversation log:
+{conversation}
+
+User query:
+{query}
+
+Refined query:
+"""
+    response = llm.invoke(prompt)
+    return response.content.strip()
+
+# -------------------------------
+# Conversation history helper
+# -------------------------------
+def get_conversation_string() -> str:
+    """
+    Returns the conversation string from Streamlit session state in format:
+    Human: ...
+    Bot: ...
+    """
     conversation_string = ""
-    for i in range(len(st.session_state['responses'])-1):
-        
-        conversation_string += "Human: "+st.session_state['requests'][i] + "\n"
-        conversation_string += "Bot: "+ st.session_state['responses'][i+1] + "\n"
+    responses = st.session_state.get("responses", [])
+    requests = st.session_state.get("requests", [])
+    
+    for i in range(len(responses) - 1):
+        human_text = requests[i] if i < len(requests) else ""
+        bot_text = responses[i + 1]
+        conversation_string += f"Human: {human_text}\nBot: {bot_text}\n"
+    
     return conversation_string

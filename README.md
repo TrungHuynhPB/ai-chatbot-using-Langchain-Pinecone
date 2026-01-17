@@ -1,45 +1,65 @@
 # Chatbot Answering from Your Own Knowledge Base: Langchain, ChatGPT, Pinecone, and Streamlit
-![main-·-Streamlit (1)](https://github.com/farukalampro/ai-chatbot-using-Langchain-Pinecone/assets/92469073/3f3ff527-f330-409f-959f-674846deb9a7)
+![main-·-Streamlit (1)]()
 
 ## Deployment
 
 #### 1. Clone Repository 
 
 ```bash
-  git clone https://github.com/farukalampro/ai-chatbot-using-Langchain-Pinecone.git
+  git clone 
 ```
 ```bash
   cd ai-chatbot-using-Langchain-Pinecone
 ```
-#### 2. Create Virtual Environment
+#### 2. Install Dependencies
+
+This project uses `uv` for dependency management. Install dependencies with:
+
 ```bash
-  python -m venv env
+  uv init
+  uv sync (or uv add -r requiremnets.txt)
 ```
+
+
+To activate the virtual environment:
+
  - For Windows:
 ```bash
-  .\env\Scripts\activate
+  .venv\Scripts\activate
 ```
  - For macOS/Linux:
 ```bash
-  source env/bin/activate
+  source .venv/bin/activate
 ```
+#### 4. Set Up Environment Variables
 
-#### 3. To install require packages 
+Copy the `env_example.txt` file to `.env` and fill in your API keys:
 
 ```bash
-  pip install -r requirements.txt
+  cp env_example.txt .env
 ```
-#### 4. Replace your own document in **data** folder
 
-#### 5. Replace your own OpenAI, Pinecone API Key and Pinecone environment in indexing.py, main.py & utils.py
- - [OpenAI API Key](https://platform.openai.com)
- - [Pinecone](app.pinecone.io)
+Edit `.env` with your credentials:
+ - OpenAI API Key: [Get from OpenAI](https://platform.openai.com)
+ - Pinecone API Key and Environment: [Get from Pinecone](https://app.pinecone.io)
 
-#### 6. When you are creating the pinecone index make sure,
+#### 5. Replace your own documents in **data** folder
+
+#### 6. Create Pinecone Index
+
+Run the index creation script to set up your Pinecone index:
+
+```bash
+  uv run index_create.py
+```
+
+Make sure your Pinecone index has:
    - **index_name = "langchain-chatbot"**
-   - **Dimensions of the index is 384**
- 
-#### 7. Run the web app
+   - **Dimensions: 1536**
+
+#### 7. Replace your own OpenAI, Pinecone API Key and Pinecone environment in indexing.py, main.py & utils.py
+
+#### 8. Run the web app
 ```bash
-  streamlit run main.py
+  uv run streamlit run main.py
 ```
