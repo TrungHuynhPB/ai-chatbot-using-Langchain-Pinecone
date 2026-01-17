@@ -54,8 +54,10 @@ Edit `.env` with your credentials:
 #### 6. Create Pinecone Index
 
 Run the index creation script to set up your Pinecone index:
-  uv run python -m  index_create <index_name>
-  Example:
+  uv run python -m  index_create <index_name>.
+
+
+Example:
 ```bash
   uv run python -m  index_create langchain-chatbot
 ```
@@ -64,9 +66,14 @@ Make sure your Pinecone index matches Pinecone index_name and settings. For exam
    - **index_name = "langchain-chatbot"**
    - **Dimensions: 1536**
 
-#### 7. Replace your own OpenAI, Pinecone API Key and Pinecone environment in indexing.py, main.py & utils.py
+#### 7. Ingest and indexing your data (PDF)
+```bash
+  uv run python -m  indexing cryptocurrencies.pdf
+```
 
-#### 8. Run the web app
+#### 8. Replace your own OpenAI, Pinecone API Key and Pinecone environment in indexing.py, main.py & utils.py
+
+#### 9. Run the web app
 ```bash
   uv run streamlit run main.py
 ```
