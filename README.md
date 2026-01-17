@@ -13,7 +13,13 @@
 ```
 #### 2. Install Dependencies
 
-This project uses `uv` for dependency management. Install dependencies with:
+This project uses `uv` for dependency management.
+Install uv with:
+```bash
+  pip install poetry, uv
+```
+
+Then install dependencies with:
 
 ```bash
   uv init
@@ -48,12 +54,13 @@ Edit `.env` with your credentials:
 #### 6. Create Pinecone Index
 
 Run the index creation script to set up your Pinecone index:
-
+  uv run python -m  index_create <index_name>
+  Example:
 ```bash
-  uv run index_create.py
+  uv run python -m  index_create langchain-chatbot
 ```
 
-Make sure your Pinecone index has:
+Make sure your Pinecone index matches Pinecone index_name and settings. For example:
    - **index_name = "langchain-chatbot"**
    - **Dimensions: 1536**
 
