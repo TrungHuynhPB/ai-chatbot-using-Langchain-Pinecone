@@ -1,12 +1,12 @@
 # Chatbot Answering from Your Own Knowledge Base: Langchain, ChatGPT, Pinecone, and Streamlit
-![main-·-Streamlit (1)]()
+![main-·-Streamlit (1)](https://github.com/TrungHuynhPB/ai-chatbot-using-Langchain-Pinecone/blob/main/img/example.png)
 
 ## Deployment
 
 #### 1. Clone Repository 
 
 ```bash
-  git clone 
+  git clone https://github.com/TrungHuynhPB/ai-chatbot-using-Langchain-Pinecone
 ```
 ```bash
   cd ai-chatbot-using-Langchain-Pinecone
